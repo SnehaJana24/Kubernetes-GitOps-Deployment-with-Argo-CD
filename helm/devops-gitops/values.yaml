@@ -1,0 +1,24 @@
+replicaCount: 2
+
+image:
+  repository: devops-gitops-app
+  pullPolicy: IfNotPresent
+  tag: "1.0"
+
+service:
+  type: NodePort
+  port: 3000
+  targetPort: 3000
+  nodePort: 30080
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 3000
+
+resources: {}
