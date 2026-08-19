@@ -1,790 +1,548 @@
-\# 🚀 Kubernetes GitOps Deployment with Argo CD
+# 🚀 Kubernetes GitOps Deployment with Argo CD
 
+A GitOps-based Kubernetes deployment using **Docker, Kubernetes, Helm, Minikube, GitHub, and Argo CD** — where Git acts as the source of truth and Argo CD automatically keeps the Kubernetes cluster synchronized with the desired state.
 
+---
 
-A complete \*\*GitOps-based Kubernetes deployment\*\* using \*\*Docker, Kubernetes, Helm, Minikube, GitHub, and Argo CD\*\*.
+## 📌 Overview
 
+This project demonstrates a complete GitOps deployment workflow for a lightweight Node.js application.
 
+The application is containerized with Docker, packaged using Helm, and deployed to a local Kubernetes cluster running on Minikube. Argo CD continuously monitors the GitHub repository and automatically synchronizes changes from Git to Kubernetes.
 
-The project demonstrates how an application can be containerized, packaged with Helm, deployed to Kubernetes, and automatically synchronized from a GitHub repository using Argo CD.
-
-
-
-\---
-
-
-
-\## 📌 Project Overview
-
-
-
-This project implements a simple Node.js application and deploys it to a local Kubernetes cluster following a GitOps workflow.
-
-
-
-Instead of manually changing Kubernetes resources, the desired deployment configuration is stored in Git. \*\*Argo CD continuously monitors the GitHub repository and automatically synchronizes changes to the Kubernetes cluster.\*\*
-
-
-
-\### Workflow
-
-
+### Architecture
 
 ```text
-
 Developer
-
-&#x20;   │
-
-&#x20;   ▼
-
+    │
+    │ git push
+    ▼
 GitHub Repository
-
-&#x20;   │
-
-&#x20;   │  GitOps source
-
-&#x20;   ▼
-
-&#x20;  Argo CD
-
-&#x20;   │
-
-&#x20;   │  Automatic Sync
-
-&#x20;   ▼
-
+    │
+    │ desired state
+    ▼
+Argo CD
+    │
+    │ auto-sync
+    ▼
+Helm Chart
+    │
+    ▼
 Kubernetes / Minikube
-
-&#x20;   │
-
-&#x20;   ▼
-
-Docker Container
-
-&#x20;   │
-
-&#x20;   ▼
-
+    │
+    ▼
 Node.js Application
-
+    │
+    ├── Pod 1
+    └── Pod 2
 ```
 
+---
 
+## 🔁 GitOps Update Demonstration
 
-\---
+The main purpose of this project was to demonstrate that a change committed to Git can automatically reach the Kubernetes cluster through Argo CD.
 
+A real deployment update was performed:
 
-
-\## 🛠️ Technologies Used
-
-
-
-\* \*\*Node.js\*\* – Application runtime
-
-\* \*\*Docker\*\* – Containerization
-
-\* \*\*Kubernetes\*\* – Container orchestration
-
-\* \*\*Minikube\*\* – Local Kubernetes cluster
-
-\* \*\*Helm\*\* – Kubernetes package management
-
-\* \*\*Argo CD\*\* – GitOps continuous delivery
-
-\* \*\*Git \& GitHub\*\* – Source control and GitOps repository
-
-\* \*\*PowerShell\*\* – Windows command-line environment
-
-
-
-\---
-
-
-
-\## 📁 Project Structure
-
-
-
-```text
-
-devops-gitops-project/
-
-│
-
-├── app/
-
-│   ├── index.js
-
-│   └── package.json
-
-│
-
-├── helm/
-
-│   └── devops-gitops/
-
-│       ├── Chart.yaml
-
-│       ├── values.yaml
-
-│       └── templates/
-
-│           ├── \_helpers.tpl
-
-│           ├── deployment.yaml
-
-│           └── service.yaml
-
-│
-
-├── k8s/
-
-│   ├── deployment.yaml
-
-│   └── service.yaml
-
-│
-
-├── Dockerfile
-
-└── README.md
-
-```
-
-
-
-\---
-
-
-
-\## ⚙️ Application
-
-
-
-The application is a lightweight Node.js HTTP server running on port `3000`.
-
-
-
-It provides health and application information endpoints that can be used by Kubernetes probes.
-
-
-
-Example response:
-
-
-
-```json
-
-{
-
-&#x20; "message": "🚀 Kubernetes GitOps Project",
-
-&#x20; "status": "running",
-
-&#x20; "pod": "local"
-
-}
-
-```
-
-
-
-\---
-
-
-
-\## 🐳 Docker
-
-
-
-The application is containerized using a lightweight Node.js Alpine image.
-
-
-
-```dockerfile
-
-FROM node:20-alpine
-
-
-
-WORKDIR /usr/src/app
-
-
-
-COPY app/package\*.json ./
-
-
-
-RUN npm install
-
-
-
-COPY app/ ./
-
-
-
-EXPOSE 3000
-
-
-
-CMD \["node", "index.js"]
-
-```
-
-
-
-The application image used in the final deployment is:
-
-
-
-```text
-
-devops-gitops-app:1.1
-
-```
-
-
-
-\---
-
-
-
-\## ☸️ Kubernetes Deployment
-
-
-
-The project uses Kubernetes Deployment and Service resources.
-
-
-
-The application runs with:
-
-
-
-```yaml
-
-replicaCount: 2
-
-```
-
-
-
-This provides two application pods for basic availability.
-
-
-
-Kubernetes health checks use:
-
-
-
-```text
-
-/health
-
-```
-
-
-
-for both \*\*liveness\*\* and \*\*readiness\*\* probes.
-
-
-
-The application is exposed using a Kubernetes `NodePort` service:
-
-
-
-```text
-
-Port:     3000
-
-Target:   3000
-
-NodePort: 30080
-
-```
-
-
-
-\---
-
-
-
-\## ⎈ Helm
-
-
-
-Helm is used to package the Kubernetes deployment.
-
-
-
-The main configuration is stored in:
-
-
-
-```text
-
-helm/devops-gitops/values.yaml
-
-```
-
-
-
-Current image configuration:
-
-
-
-```yaml
-
-image:
-
-&#x20; repository: devops-gitops-app
-
-&#x20; pullPolicy: IfNotPresent
-
-&#x20; tag: "1.1"
-
-```
-
-
-
-The Helm chart was validated using:
-
-
-
-```bash
-
-helm lint helm/devops-gitops
-
-```
-
-
-
-and successfully passed linting.
-
-
-
-The generated Kubernetes manifests were also verified using:
-
-
-
-```bash
-
-helm template devops-gitops helm/devops-gitops
-
-```
-
-
-
-\---
-
-
-
-\## 🔄 GitOps with Argo CD
-
-
-
-Argo CD is configured to monitor this GitHub repository:
-
-
-
-```text
-
-https://github.com/SnehaJana24/devops-gitops-project.git
-
-```
-
-
-
-Argo CD uses the Helm chart located at:
-
-
-
-```text
-
-helm/devops-gitops
-
-```
-
-
-
-The application is configured for:
-
-
-
-\* Automatic synchronization
-
-\* Pruning
-
-\* Self-healing
-
-
-
-Therefore, Git acts as the \*\*source of truth\*\* for the Kubernetes deployment.
-
-
-
-\### GitOps Flow
-
-
-
-```text
-
-Git Commit
-
-&#x20;   │
-
-&#x20;   ▼
-
-GitHub main branch
-
-&#x20;   │
-
-&#x20;   ▼
-
-Argo CD detects change
-
-&#x20;   │
-
-&#x20;   ▼
-
-Helm manifests rendered
-
-&#x20;   │
-
-&#x20;   ▼
-
-Kubernetes resources updated
-
-&#x20;   │
-
-&#x20;   ▼
-
-New application pods created
-
-```
-
-
-
-\---
-
-
-
-\## 🧪 Verification
-
-
-
-Argo CD application status:
-
-
-
-```text
-
-SYNC STATUS:   Synced
-
-HEALTH STATUS: Healthy
-
-```
-
-
-
-The deployed image was verified with:
-
-
-
-```bash
-
-kubectl get deployment devops-gitops \\
-
-\-o jsonpath="{.spec.template.spec.containers\[0].image}"
-
-```
-
-
-
-Result:
-
-
-
-```text
-
-devops-gitops-app:1.1
-
-```
-
-
-
-Running pods:
-
-
-
-```text
-
-devops-gitops-74c8b94dd5-cvcnc   1/1   Running
-
-devops-gitops-74c8b94dd5-lsp2t   1/1   Running
-
-```
-
-
-
-Argo CD synchronized revision:
-
-
-
-```text
-
-a9756268d73cf23eaba5df1251b4476a8fb5a470
-
-```
-
-
-
-This confirms that the Kubernetes deployment was successfully updated from the latest Git commit.
-
-
-
-\---
-
-
-
-\## 🌐 Accessing the Application
-
-
-
-The application can be exposed locally through Minikube:
-
-
-
-```bash
-
-minikube service devops-gitops --url
-
-```
-
-
-
-Example:
-
-
-
-```text
-
-http://127.0.0.1:<port>
-
-```
-
-
-
-Test the application:
-
-
-
-```bash
-
-curl.exe http://127.0.0.1:<port>/
-
-```
-
-
-
-Example response:
-
-
-
-```json
-
-{
-
-&#x20; "message": "🚀 Kubernetes GitOps Project",
-
-&#x20; "status": "running",
-
-&#x20; "pod": "local"
-
-}
-
-```
-
-
-
-\---
-
-
-
-\## 🔁 Demonstrated GitOps Update
-
-
-
-A major part of this project was testing an actual GitOps change.
-
-
-
-The application image was updated from:
-
-
-
-```text
-
-devops-gitops-app:1.0
-
-```
-
-
-
-to:
-
-
-
-```text
-
-devops-gitops-app:1.1
-
-```
-
-
-
-The change was committed and pushed to GitHub.
-
-
-
-Argo CD detected the new Git revision and automatically updated the Kubernetes Deployment.
-
-
+1. The application image was changed from `devops-gitops-app:1.0` to `devops-gitops-app:1.1`.
+2. The Helm `values.yaml` file was updated.
+3. The change was committed and pushed to GitHub.
+4. Argo CD detected the new Git revision.
+5. Argo CD synchronized the Helm chart with Kubernetes.
+6. Kubernetes created new pods using the updated image.
+7. The deployment was verified as healthy.
 
 The final deployment was verified with:
 
-
-
-```bash
-
-kubectl get deployment devops-gitops \\
-
-\-o jsonpath="{.spec.template.spec.containers\[0].image}"
-
+```powershell
+kubectl get application devops-gitops -n argocd
 ```
 
+```text
+SYNC STATUS:   Synced
+HEALTH STATUS: Healthy
+```
 
+The deployed image was verified with:
+
+```powershell
+kubectl get deployment devops-gitops -o jsonpath="{.spec.template.spec.containers[0].image}"
+```
 
 Result:
 
-
-
 ```text
-
 devops-gitops-app:1.1
-
 ```
 
+The running pods were also verified:
+
+```powershell
+kubectl get pods -l app=devops-gitops
+```
+
+Both application pods were running successfully.
 
+### GitOps Flow
 
-This demonstrates the core GitOps principle:
+```text
+Git commit
+    ↓
+GitHub main branch
+    ↓
+Argo CD detects change
+    ↓
+Helm chart rendered
+    ↓
+Kubernetes Deployment updated
+    ↓
+New application pods created
+```
 
+**Git change → Argo CD synchronization → Kubernetes deployment update**
 
+This is the core GitOps workflow demonstrated by the project.
 
-> \*\*Git change → Argo CD synchronization → Kubernetes deployment update\*\*
+---
 
+## 🛠️ Technologies Used
 
+| Technology       | Purpose                                     |
+| ---------------- | ------------------------------------------- |
+| **Node.js**      | Sample application                          |
+| **Docker**       | Application containerization                |
+| **Kubernetes**   | Container orchestration                     |
+| **Minikube**     | Local Kubernetes cluster                    |
+| **Helm**         | Kubernetes packaging and templating         |
+| **Argo CD**      | GitOps continuous delivery                  |
+| **Git & GitHub** | Source control and desired-state management |
+| **PowerShell**   | Windows command-line environment            |
 
-\---
+---
 
+## 📁 Project Structure
 
+```text
+devops-gitops-project/
+│
+├── app/
+│   ├── index.js
+│   └── package.json
+│
+├── helm/
+│   └── devops-gitops/
+│       ├── Chart.yaml
+│       ├── values.yaml
+│       └── templates/
+│           ├── _helpers.tpl
+│           ├── deployment.yaml
+│           └── service.yaml
+│
+├── Dockerfile
+└── README.md
+```
 
-\## 🎯 Key Learning Outcomes
+---
 
+## ⚙️ Application
 
+The project contains a lightweight Node.js HTTP server running on port `3000`.
 
-Through this project, I practiced:
+It provides three endpoints:
 
+| Endpoint  | Purpose                                  |
+| --------- | ---------------------------------------- |
+| `/`       | Returns the application status           |
+| `/health` | Kubernetes liveness and readiness checks |
+| `/info`   | Returns application information          |
 
+Example response from `/`:
 
-\* Containerizing applications with Docker
+```json
+{
+  "message": "🚀 Kubernetes GitOps Project",
+  "status": "running",
+  "pod": "local"
+}
+```
 
-\* Creating and managing Kubernetes Deployments
+---
 
-\* Creating Kubernetes Services
+## 🐳 Docker
 
-\* Configuring health probes
+The Node.js application is packaged into a lightweight Docker image using `node:20-alpine`.
 
-\* Packaging applications with Helm
+The Dockerfile:
 
-\* Managing Helm values and templates
+```dockerfile
+FROM node:20-alpine
 
-\* Running Kubernetes locally with Minikube
+WORKDIR /usr/src/app
 
-\* Setting up Argo CD
+COPY app/package*.json ./
 
-\* Connecting Argo CD to a GitHub repository
+RUN npm install
 
-\* Implementing automated GitOps synchronization
+COPY app/ ./
 
-\* Verifying Kubernetes deployments
+EXPOSE 3000
 
-\* Performing Git-based application updates
+CMD ["node", "index.js"]
+```
 
-\* Troubleshooting Kubernetes and Argo CD issues
+The image used in the final deployment was:
 
+```text
+devops-gitops-app:1.1
+```
 
+For local Minikube deployment, the image was loaded into the Minikube environment:
 
-\---
+```powershell
+minikube image load devops-gitops-app:1.1
+```
 
+---
 
+## ☸️ Kubernetes Deployment
 
-\## 🚀 Future Improvements
+The application is deployed using a Kubernetes `Deployment` and `Service`.
 
+### Deployment
 
+The Helm configuration runs:
 
-Possible improvements include:
+```yaml
+replicaCount: 2
+```
 
+Therefore, two application pods are maintained.
 
+This provides basic availability because Kubernetes can maintain another running replica if one pod becomes unavailable.
 
-\* Add GitHub Actions CI pipeline
+### Health Probes
 
-\* Build Docker images automatically
+Both Kubernetes probes use the application's `/health` endpoint:
 
-\* Push images to Amazon ECR or Docker Hub
+```text
+/health
+```
 
-\* Add automated vulnerability scanning
+* **Liveness probe** — checks whether the application is alive.
+* **Readiness probe** — checks whether the application is ready to receive traffic.
 
-\* Use separate development and production environments
+### Service
 
-\* Add Prometheus and Grafana monitoring
+The application is exposed using a Kubernetes `NodePort` service:
 
-\* Deploy to an AWS EKS cluster
+```text
+Application Port: 3000
+Target Port:     3000
+NodePort:        30080
+```
 
-\* Add Ingress and HTTPS
+---
 
-\* Implement image version automation
+## ⎈ Helm
 
+The Kubernetes deployment is packaged as a Helm chart.
 
+Helm allows deployment configuration such as the image version and replica count to be managed through `values.yaml`.
 
-\---
+Main configuration:
 
+```text
+helm/devops-gitops/values.yaml
+```
 
+Current image configuration:
 
-\## 👩‍💻 Author
+```yaml
+image:
+  repository: devops-gitops-app
+  pullPolicy: IfNotPresent
+  tag: "1.1"
+```
 
+### Helm Validation
 
+The chart was validated using:
 
-\*\*Sneha Jana\*\*
+```powershell
+helm lint helm/devops-gitops
+```
 
+The chart passed linting successfully.
 
+The generated Kubernetes manifests were also inspected using:
 
-Computer Science \& Engineering Student
+```powershell
+helm template devops-gitops helm/devops-gitops
+```
 
-Interested in \*\*DevOps, Cloud Computing, Kubernetes, and Cloud-Native Technologies\*\*.
+---
 
+## 🔄 Argo CD
 
+Argo CD is used as the GitOps continuous delivery tool.
 
-\---
+The configured repository is:
 
+```text
+https://github.com/SnehaJana24/devops-gitops-project.git
+```
 
+Argo CD monitors:
 
-\## ⭐ Project Goal
+```text
+Branch: main
+Path:   helm/devops-gitops
+```
 
+The application uses the Helm chart as its deployment source.
 
+### Automated Sync
 
-The goal of this project is to demonstrate a practical \*\*GitOps deployment workflow\*\* where application configuration is maintained in Git and Argo CD automatically keeps the Kubernetes cluster synchronized with the desired state.
+The Argo CD application is configured with:
 
+* **Automated synchronization**
+* **Prune**
+* **Self-heal**
 
+This means Git remains the desired state for the Kubernetes deployment.
+
+When a configuration change is pushed to GitHub:
+
+```text
+GitHub
+   ↓
+Argo CD detects new revision
+   ↓
+Helm chart rendered
+   ↓
+Kubernetes resources synchronized
+```
+
+Argo CD can also correct configuration drift when the live Kubernetes state differs from the desired state stored in Git.
+
+---
+
+## 🧪 Verification
+
+The final Argo CD application status:
+
+```text
+SYNC STATUS:   Synced
+HEALTH STATUS: Healthy
+```
+
+The deployed image:
+
+```text
+devops-gitops-app:1.1
+```
+
+The final deployment contained two running replicas:
+
+```text
+devops-gitops-74c8b94dd5-cvcnc
+devops-gitops-74c8b94dd5-lsp2t
+```
+
+The deployment was also verified with:
+
+```powershell
+kubectl get deployment devops-gitops
+```
+
+Expected result:
+
+```text
+READY   UP-TO-DATE   AVAILABLE
+2/2     2            2
+```
+
+---
+
+## 🌐 Running the Application
+
+Start Minikube:
+
+```powershell
+minikube start --driver=docker
+```
+
+Load the local Docker image:
+
+```powershell
+minikube image load devops-gitops-app:1.1
+```
+
+After Argo CD has synchronized the application, obtain the service URL:
+
+```powershell
+minikube service devops-gitops --url
+```
+
+Example:
+
+```text
+http://127.0.0.1:<port>
+```
+
+Test the application:
+
+```powershell
+curl.exe http://127.0.0.1:<port>/
+```
+
+Test the health endpoint:
+
+```powershell
+curl.exe http://127.0.0.1:<port>/health
+```
+
+---
+
+## 🐞 Problems Encountered and Resolved
+
+### 1. Minikube Startup Issue
+
+Minikube initially failed to start because Docker Desktop's Linux engine was not ready.
+
+The issue was resolved by starting Docker Desktop completely and then running:
+
+```powershell
+minikube start --driver=docker
+```
+
+---
+
+### 2. Argo CD ApplicationSet CRD Missing
+
+The Argo CD ApplicationSet controller initially reported:
+
+```text
+no matches for kind "ApplicationSet"
+in version "argoproj.io/v1alpha1"
+```
+
+The required ApplicationSet CRD was missing.
+
+The issue was diagnosed using:
+
+```powershell
+kubectl get crd applicationsets.argoproj.io
+```
+
+The CRD was then installed from the Argo CD installation manifest.
+
+After installation, the ApplicationSet controller became healthy.
+
+---
+
+### 3. Private GitHub Repository Authentication
+
+Argo CD initially could not access the GitHub repository and reported:
+
+```text
+authentication required:
+Repository not found
+```
+
+A GitHub access token was configured for the repository in Argo CD.
+
+The repository connection was then verified successfully.
+
+---
+
+### 4. Argo CD Synchronization Delay
+
+After pushing the image update, Argo CD initially continued reporting the previous Git revision.
+
+The Git repository was verified using:
+
+```powershell
+git log --oneline origin/main -3
+```
+
+The Argo CD revision was then compared with the Git revision.
+
+A hard refresh was triggered using:
+
+```powershell
+kubectl -n argocd annotate application devops-gitops `
+  argocd.argoproj.io/refresh=hard --overwrite
+```
+
+Argo CD subsequently detected the new revision and synchronized the application.
+
+The final deployment changed from:
+
+```text
+devops-gitops-app:1.0
+```
+
+to:
+
+```text
+devops-gitops-app:1.1
+```
+
+---
+
+## 🎯 What This Project Demonstrates
+
+This project provided hands-on practice with:
+
+* Docker containerization
+* Kubernetes Deployments
+* Kubernetes Services
+* Liveness and readiness probes
+* Minikube
+* Helm charts
+* Helm values and templates
+* Git and GitHub
+* Argo CD
+* GitOps principles
+* Automated synchronization
+* Kubernetes health verification
+* Git-based deployment updates
+* Troubleshooting Kubernetes and Argo CD issues
+
+Most importantly, it demonstrates a working GitOps workflow rather than simply installing the individual tools.
+
+---
+
+## 🔮 Future Improvements
+
+Possible next steps include:
+
+* Add GitHub Actions for CI
+* Automatically build Docker images after every push
+* Push images to Amazon ECR or Docker Hub
+* Add automated vulnerability scanning
+* Use unique image tags for every release
+* Add Prometheus and Grafana monitoring
+* Deploy the application to AWS EKS
+* Add Kubernetes Ingress and HTTPS
+* Implement separate development and production environments
+* Automate image version updates
+
+---
+
+## 👩‍💻 Author
+
+**Sneha Jana**
+
+Computer Science & Engineering Student
+
+Interested in **DevOps, Cloud Computing, Kubernetes, and Cloud-Native Technologies**.
+
+---
+
+## ⭐ Project Goal
+
+The goal of this project is to demonstrate a practical **GitOps deployment workflow** where the desired Kubernetes state is maintained in Git and Argo CD automatically keeps the cluster synchronized with that state.
 
